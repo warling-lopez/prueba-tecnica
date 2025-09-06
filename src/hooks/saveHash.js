@@ -6,7 +6,7 @@ export const saveHash = (hash) => {
     console.error("Error guardando hash:", err);
   }
 };
-
+ 
 // Función para leer el hash
 export const getHash = () => {
   try {
