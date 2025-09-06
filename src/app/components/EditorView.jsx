@@ -1,13 +1,12 @@
 import React from 'react';
 import { ArrowLeft, Save, Share2, Type, Calendar, CheckSquare, PenTool, Move } from 'lucide-react';
-
-const EditorView = ({ currentTemplate, setCurrentView, openShareModal }) => {
+import DashboardView from './DashboardView';
+const EditorView = ({ currentTemplate, setCurrentView, openShareModal, templates }) => {
   // Nota: La lógica de arrastrar, soltar y redimensionar requeriría una biblioteca
   // de React como `react-draggable` o `react-resizable`. Aquí solo se presenta la estructura.
   const addField = (type) => {
     // Lógica para añadir un campo al estado
     console.log(`Añadiendo campo de tipo: ${type}`);
-    currentTemplate.name == "prueba.pdf"
   };
 
   const removeField = (index) => {
@@ -59,7 +58,25 @@ const EditorView = ({ currentTemplate, setCurrentView, openShareModal }) => {
         <main className="flex-1 bg-gray-100 p-8 overflow-auto flex justify-center">
           <div id="pdf-container" className="relative">
             {/* El PDF se renderizaría aquí, por ejemplo, con react-pdf */}
-            <canvas id="pdf-render"></canvas>
+            <canvas id="pdf-render">
+              {templates?.map((template) => (
+      <div key={template.id} className="flex items-center space-x-4 cursor-pointer">
+        {template.fileUrl ? (
+          <object
+            data={template.fileUrl}
+            type="application/pdf"
+            width="60"
+            height="80"
+            className="rounded border"
+          >
+            <p>No se puede mostrar el PDF</p>
+          </object>
+        ) : (
+          <FileText className="h-6 w-6 text-gray-400" />
+        )}
+      </div>
+    ))}
+            </canvas>
             {currentTemplate.fields.map((field, index) => (
               <div
                 key={field.id}
