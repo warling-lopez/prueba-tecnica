@@ -1,12 +1,45 @@
 import React from "react";
 import { FileText, MoreVertical, Edit, Share2, Upload } from "lucide-react";
+import { supabase } from "../../Supabase/supabaseClient"; // 👈 asegúrate de tener este archivo configurado
 
-const DashboardView = ({
+export const DashboardView = ({
   templates,
   editTemplate,
   openShareModal,
-  handlePdfUpload,
 }) => {
+  // 👇 nueva función para subir PDFs a Supabase
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      // nombre único para evitar colisiones
+      const filePath = `documents/${Date.now()}-${file.name}`;
+
+      const { data, error } = await supabase.storage
+        .from("pdfs") // 👈 tu bucket
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+        console.log(data);
+      if (error) {
+        console.error("Error subiendo PDF:", error.message);
+        return;
+      }
+
+      // obtener URL pública del archivo
+      const { data: publicUrlData } = supabase.storage
+        .from("pdfs")
+        .getPublicUrl(filePath);
+
+      console.log("PDF subido en:", publicUrlData.publicUrl);
+      alert("PDF subido con éxito ✅");
+    } catch (err) {
+      console.error("Error inesperado:", err);
+    }
+  };
+
   return (
     <main className="flex-1 overflow-y-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -25,7 +58,8 @@ const DashboardView = ({
             type="file"
             id="pdf-upload-input"
             className="hidden"
-            onChange={handlePdfUpload}
+            accept="application/pdf"
+            onChange={handlePdfUpload} // 👈 aquí se conecta
           />
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">

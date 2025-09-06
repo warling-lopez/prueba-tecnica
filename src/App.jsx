@@ -1,17 +1,53 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {supabase} from "./Supabase/supabaseClient"; // Asegúrate de tener este archivo configurado
+import { getHash } from "./hooks/saveHash";
+import { saveHash } from "./hooks/saveHash";
 // Este es el componente principal que contiene toda la landing page.
 const App = () => {
   // Estado para controlar la visibilidad del mensaje de éxito
   const [showSuccess, setShowSuccess] = useState(false);
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
 
+    const params = new URLSearchParams(hash.substring());
+    const accessToken = params.get("access_token");
+    if (accessToken) {
+      saveHash(accessToken);
+      console.log("Hash guardado:", accessToken);
+    }
+
+    // Limpiar la URL para que no se vea el hash
+    window.history.replaceState(null, null, window.location.pathname);
+  }, []);
+
+  // Función de login con Google
   // Función para simular el inicio de sesión y mostrar el mensaje
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin }
+    });
+    console.log(data);
+    if (error) {
+      console.error("Error en login con Google:", error.message);
+      return;
+    }
+
+    // Supongamos que recibes un hash/token después del login
+    const Hash = getHash(); // aquí iría data.session?.access_token o lo que necesites
+    saveHash(Hash); // guardamos en localStorage
+
     setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-    }, 3000); // El mensaje desaparece después de 3 segundos
-  };
+    setTimeout(() => setShowSuccess(false), 3000);
+  } catch (err) {
+    console.error("Error inesperado:", err);
+  }
+};
+
+
 
   // Funciones utilitarias para los iconos SVG, ya que no podemos usar data-lucide
   const IconFileText = () => (
